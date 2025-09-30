@@ -2256,32 +2256,41 @@ class _TransactionsScreenState extends State<TransactionsScreen> with SingleTick
     }
 
     if (transactions.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+      return RefreshIndicator(
+        onRefresh: () => fetchTransactions(txnStatus, txnType),
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
           children: [
-            Icon(
-              Icons.receipt_long_outlined,
-              size: 48,
-              color: Colors.grey[400],
-            ),
-            SizedBox(height: 16),
-            Text(
-              'No transactions found',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[600],
-                fontWeight: FontWeight.w500,
+            SizedBox(height: MediaQuery.of(context).size.height * 0.2),
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.receipt_long_outlined,
+                    size: 48,
+                    color: Colors.grey[400],
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    'No transactions found',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[600],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Try changing your filters or select a different terminal',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[500],
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Try changing your filters or select a different terminal',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[500],
-              ),
-              textAlign: TextAlign.center,
             ),
           ],
         ),
@@ -2318,10 +2327,12 @@ class _TransactionsScreenState extends State<TransactionsScreen> with SingleTick
       return dateB.compareTo(dateA); // Sort descending (newest first)
     });
 
-    return ListView.builder(
-      controller: _scrollController, // Keep existing scroll controller
-      itemCount: dateKeys.length + (isLoadingMore ? 1 : 0), // +1 for loading indicator
-      itemBuilder: (context, index) {
+    return RefreshIndicator(
+      onRefresh: () => fetchTransactions(txnStatus, txnType),
+      child: ListView.builder(
+        controller: _scrollController, // Keep existing scroll controller
+        itemCount: dateKeys.length + (isLoadingMore ? 1 : 0), // +1 for loading indicator
+        itemBuilder: (context, index) {
         if (isLoadingMore && index == dateKeys.length) {
           return Center(
             child: Padding(
@@ -2367,7 +2378,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with SingleTick
 
 
       },
-    );
+    ),);
   }
 
   DateTime _parseDateTime(String dateStr) {
@@ -2440,32 +2451,41 @@ class _TransactionsScreenState extends State<TransactionsScreen> with SingleTick
     }
 
     if (transactions.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+      return RefreshIndicator(
+        onRefresh: fetchStaticQRTransactions,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
           children: [
-            Icon(
-              Icons.qr_code_outlined,
-              size: 48,
-              color: Colors.grey[400],
-            ),
-            SizedBox(height: 16),
-            Text(
-              'No transactions found',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[600],
-                fontWeight: FontWeight.w500,
+            SizedBox(height: MediaQuery.of(context).size.height * 0.2),
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.qr_code_outlined,
+                    size: 48,
+                    color: Colors.grey[400],
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    'No transactions found',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[600],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Try changing your filters or select a different VPA',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[500],
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Try changing your filters or select a different VPA',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[500],
-              ),
-              textAlign: TextAlign.center,
             ),
           ],
         ),
@@ -2520,10 +2540,12 @@ class _TransactionsScreenState extends State<TransactionsScreen> with SingleTick
       return dateB.compareTo(dateA); // Sort other dates descending (newest first)
     });
 
-    return ListView.builder(
-      controller: _scrollController, // Keep existing scroll controller
-      itemCount: dateKeys.length + (isLoadingMore ? 1 : 0),
-      itemBuilder: (context, index) {
+    return RefreshIndicator(
+      onRefresh: fetchStaticQRTransactions,
+      child: ListView.builder(
+        controller: _scrollController, // Keep existing scroll controller
+        itemCount: dateKeys.length + (isLoadingMore ? 1 : 0),
+        itemBuilder: (context, index) {
         if (isLoadingMore && index == dateKeys.length) {
           return Center(
             child: Padding(
@@ -2569,7 +2591,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with SingleTick
 
 
       },
-    );
+    ),);
   }
 
   void _resetFilters() {

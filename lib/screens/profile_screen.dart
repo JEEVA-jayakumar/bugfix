@@ -540,38 +540,34 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
       child: Scaffold(
         backgroundColor: backgroundColor,
         body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16), // Reduced vertical padding
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Voice Out Toggle Section
-                  _buildVoiceOutSection(primaryColor, textColor),
-                  const SizedBox(height: 8), // Reduced from 10
-                  _buildLanguageDropdown(primaryColor, borderColor, textColor),
-                  const SizedBox(height: 16), // Reduced from 20
-                  // Divider after QR Sticker line
-                  _buildDivider(),
-                  const SizedBox(height: 16),
+          child: RefreshIndicator(
+            onRefresh: _loadProfileData,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              children: [
+                // Voice Out Toggle Section
+                _buildVoiceOutSection(primaryColor, textColor),
+                const SizedBox(height: 8), // Reduced from 10
+                _buildLanguageDropdown(primaryColor, borderColor, textColor),
+                const SizedBox(height: 16), // Reduced from 20
+                // Divider after QR Sticker line
+                _buildDivider(),
+                const SizedBox(height: 16),
 
+                // Merchant Details - Without Card
+                _buildMerchantDetails(textColor),
 
-                  // Merchant Details - Without Card
-                  _buildMerchantDetails(textColor),
+                const SizedBox(height: 36),
 
-                  const SizedBox(height: 36),
+                // Divider before logout
+                _buildDivider(),
+                const SizedBox(height: 16),
 
-                  // Divider before logout
-                  _buildDivider(),
-                  const SizedBox(height: 16),
-
-                  // Logout Section
-                  _buildLogoutSection(textColor),
-                  const SizedBox(height: 16),
-
-                ],
-              ),
+                // Logout Section
+                _buildLogoutSection(textColor),
+                const SizedBox(height: 16),
+              ],
             ),
           ),
         ),

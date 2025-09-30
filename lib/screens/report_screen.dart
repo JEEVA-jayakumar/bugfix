@@ -798,32 +798,42 @@ class _TransactionReportPageState extends State<TransactionReportPage>
     }
 
     if (items.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+      return RefreshIndicator(
+        onRefresh: _refreshData,
+        color: customPurple,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
           children: [
-            Icon(
-              Icons.insert_drive_file_outlined,
-              size: 64,
-              color: Colors.grey.shade300,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              "No reports available",
-              style: TextStyle(
-                fontFamily: 'Montserrat',
-                color: Colors.grey.shade600,
-                fontSize: 18,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              "Pull down to refresh",
-              style: TextStyle(
-                fontFamily: 'Montserrat',
-                color: Colors.grey.shade500,
-                fontSize: 14,
+            SizedBox(height: MediaQuery.of(context).size.height * 0.2),
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.insert_drive_file_outlined,
+                    size: 64,
+                    color: Colors.grey.shade300,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    "No reports available",
+                    style: TextStyle(
+                      fontFamily: 'Montserrat',
+                      color: Colors.grey.shade600,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    "Pull down to refresh",
+                    style: TextStyle(
+                      fontFamily: 'Montserrat',
+                      color: Colors.grey.shade500,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
