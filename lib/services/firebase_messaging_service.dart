@@ -35,6 +35,14 @@ class FirebaseMessagingService {
       print('User granted permission: ${settings.authorizationStatus}');
     }
 
+    // Get the APNS token first on iOS
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      String? apnsToken = await _firebaseMessaging.getAPNSToken();
+      if (kDebugMode) {
+        print("APNS Token: $apnsToken");
+      }
+    }
+
     // Get the FCM token
     String? fcmToken = await _firebaseMessaging.getToken();
     if (kDebugMode) {
