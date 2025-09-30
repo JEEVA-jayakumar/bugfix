@@ -25,6 +25,7 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_core/firebase_core.dart'; // Added Firebase Core
+import 'package:bugfix/firebase_options.dart';
 import 'package:bugfix/services/firebase_messaging_service.dart'; // Added Messaging Service
 
 
@@ -103,7 +104,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   //  Initialize Firebase
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   //  Initialize your Firebase Messaging logic
   await FirebaseMessagingService().initialize();
