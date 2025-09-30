@@ -28,10 +28,6 @@ import 'package:firebase_core/firebase_core.dart'; // Added Firebase Core
 import 'package:bugfix/firebase_options.dart';
 import 'package:bugfix/services/firebase_messaging_service.dart'; // Added Messaging Service
 
-
-
-
-
 Color customPurple = Color(0xFF61116A);
 
 class AppState {
@@ -2470,9 +2466,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final List<Map<String, dynamic>> links = [
       {"icon": Icons.compare_arrows, "label": "My Transaction", "key": "transaction"},
       {"icon": Icons.notifications_active_outlined, "label": "My Notification", "key": "notification"},
-      {"icon": Icons.shield_outlined, "label": "Risk Hold", "key": "Risk Hold"},
       {"icon": Icons.insert_chart_outlined, "label": "My Report", "key": "report"},
       {"icon": Icons.support_agent, "label": "Support Center", "key": "support"},
+      {"icon": Icons.shield_outlined, "label": "Risk Hold", "key": "Risk Hold"},
     ];
 
     return Container(
