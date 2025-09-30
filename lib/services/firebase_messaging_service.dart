@@ -44,9 +44,16 @@ class FirebaseMessagingService {
     }
 
     // Get the FCM token
-    String? fcmToken = await _firebaseMessaging.getToken();
-    if (kDebugMode) {
-      print("Firebase Messaging Token: $fcmToken");
+    try {
+      String? fcmToken = await _firebaseMessaging.getToken();
+      if (kDebugMode) {
+        print("Firebase Messaging Token: $fcmToken");
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Failed to get FCM token. This is normal on an iOS simulator.');
+        print('Error: $e');
+      }
     }
     // You would typically send this token to your server
 
