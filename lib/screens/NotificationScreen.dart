@@ -126,6 +126,11 @@ class _NotificationScreenState extends State<NotificationScreen>
     }
   }
 
+  Future<void> _refreshData() async {
+    final type = _tabController.index == 0 ? 'RiskHold' : 'Settlement';
+    await _fetchData(type);
+  }
+
   String _formatDate(dynamic timestamp) {
     if (timestamp == null) return '';
 
@@ -298,32 +303,41 @@ class _NotificationScreenState extends State<NotificationScreen>
     }
 
     if (items.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+      return RefreshIndicator(
+        onRefresh: _refreshData,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
           children: [
-            Icon(
-              Icons.notifications_none_outlined,
-              size: 64,
-              color: Colors.grey.shade300,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              "No notifications found",
-              style: TextStyle(
-                fontFamily: 'Montserrat',
-                color: Colors.grey.shade600,
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              "You're all caught up!",
-              style: TextStyle(
-                fontFamily: 'Montserrat',
-                color: Colors.grey.shade500,
-                fontSize: 14,
+            SizedBox(height: MediaQuery.of(context).size.height * 0.2),
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.notifications_none_outlined,
+                    size: 64,
+                    color: Colors.grey.shade300,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    "No notifications found",
+                    style: TextStyle(
+                      fontFamily: 'Montserrat',
+                      color: Colors.grey.shade600,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    "You're all caught up!",
+                    style: TextStyle(
+                      fontFamily: 'Montserrat',
+                      color: Colors.grey.shade500,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -331,10 +345,13 @@ class _NotificationScreenState extends State<NotificationScreen>
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      itemCount: items.length,
-      itemBuilder: (_, index) => _buildNotificationItem(items[index]),
+    return RefreshIndicator(
+      onRefresh: _refreshData,
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        itemCount: items.length,
+        itemBuilder: (_, index) => _buildNotificationItem(items[index]),
+      ),
     );
   }
 

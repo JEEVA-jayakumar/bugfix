@@ -372,7 +372,16 @@ class _SupportScreenState extends State<SupportScreen> {
                 ),
               )
                   : _tickets.isEmpty
-                  ? _buildEmptyState()
+                  ? LayoutBuilder(builder: (context, constraints) {
+                      return SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        child: ConstrainedBox(
+                          constraints:
+                              BoxConstraints(minHeight: constraints.maxHeight),
+                          child: _buildEmptyState(),
+                        ),
+                      );
+                    })
                   : ListView.builder(
                 controller: _scrollController,
                 itemCount: _tickets.length + 1,
