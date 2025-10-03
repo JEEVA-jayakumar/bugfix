@@ -847,16 +847,20 @@ class _TransactionReportPageState extends State<TransactionReportPage>
       child: Column(
         children: [
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              itemCount: items.length > 5 ? 5 : items.length,
-              itemBuilder: (context, index) => _buildListItem(items[index], index, items.length > 5 ? 5 : items.length),
-              physics: AlwaysScrollableScrollPhysics(),
+            child: RefreshIndicator(
+              onRefresh: _refreshData,
+              color: customPurple,
+              child: ListView.builder(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                itemCount: items.length > 5 ? 5 : items.length,
+                itemBuilder: (context, index) => _buildListItem(items[index], index, items.length > 5 ? 5 : items.length),
+                physics: const AlwaysScrollableScrollPhysics(),
+              ),
             ),
           ),
           Container(
             width: double.infinity,
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.white,
               border: Border(top: BorderSide(color: Colors.grey.shade300, width: 0.5)),

@@ -713,6 +713,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with SingleTick
   DateTime? filterStartDate;
   DateTime? filterEndDate;
   List<Map<String, dynamic>> transactions = [];
+  List<Map<String, dynamic>> filteredTransactions = [];
   bool isLoading = false;
   TextEditingController searchController = TextEditingController();
   late ScrollController _scrollController;
@@ -979,6 +980,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with SingleTick
             currentPage = nextPage;
             hasMoreData = !isLastPage;
           });
+          _filterTransactions(searchController.text);
         }
       }
     } catch (e) {
@@ -994,6 +996,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with SingleTick
       isLoading = true;
       currentPage = 0;
       transactions.clear();
+      filteredTransactions.clear();
       hasMoreData = true;
       currentTxnStatus = txnStatus;
       currentTxnType = List.from(txnType);
@@ -1074,7 +1077,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with SingleTick
           print('API returned ${content.length} transactions');
 
           // Process transactions
-          List<Map<String, dynamic>> filteredTransactions = [];
+          List<Map<String, dynamic>> processedTransactions = [];
 
           for (var transaction in content) {
             final processedTransaction = {
@@ -1095,33 +1098,37 @@ class _TransactionsScreenState extends State<TransactionsScreen> with SingleTick
 
             // Apply client-side filtering (if needed as backup)
             if (_shouldIncludeTransaction(processedTransaction, txnStatus, txnType)) {
-              filteredTransactions.add(processedTransaction);
+              processedTransactions.add(processedTransaction);
             }
           }
 
-          print('After filtering: ${filteredTransactions.length} transactions');
+          print('After filtering: ${processedTransactions.length} transactions');
 
           setState(() {
-            transactions = filteredTransactions;
+            transactions = processedTransactions;
             currentPage = 1;
             hasMoreData = !isLastPage;
           });
+          _filterTransactions(searchController.text);
         } else {
           print('API Error: ${responseData['message'] ?? 'Unknown error'}');
           setState(() {
             transactions = [];
+            filteredTransactions = [];
           });
         }
       } else {
         print('HTTP Error: ${response.statusCode}');
         setState(() {
           transactions = [];
+          filteredTransactions = [];
         });
       }
     } catch (e) {
       print('Error fetching transactions: $e');
       setState(() {
         transactions = [];
+        filteredTransactions = [];
       });
     } finally {
       setState(() => isLoading = false);
@@ -2255,7 +2262,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with SingleTick
       );
     }
 
-    if (transactions.isEmpty) {
+    if (filteredTransactions.isEmpty) {
       return RefreshIndicator(
         onRefresh: () => fetchTransactions(txnStatus, txnType),
         child: ListView(
@@ -2282,7 +2289,9 @@ class _TransactionsScreenState extends State<TransactionsScreen> with SingleTick
                   ),
                   SizedBox(height: 8),
                   Text(
-                    'Try changing your filters or select a different terminal',
+                    searchController.text.isNotEmpty
+                      ? 'No transactions match your search'
+                      : 'Try changing your filters or select a different terminal',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey[500],
@@ -2300,7 +2309,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with SingleTick
     // Group transactions by date
     Map<String, List<Map<String, dynamic>>> groupedTransactions = {};
 
-    for (var transaction in transactions) {
+    for (var transaction in filteredTransactions) {
       try {
         final transactionDate = _parseDateTime(transaction['time']);
         String dateKey = _formatDate(transactionDate);
@@ -2450,7 +2459,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with SingleTick
       );
     }
 
-    if (transactions.isEmpty) {
+    if (filteredTransactions.isEmpty) {
       return RefreshIndicator(
         onRefresh: fetchStaticQRTransactions,
         child: ListView(
@@ -2477,7 +2486,9 @@ class _TransactionsScreenState extends State<TransactionsScreen> with SingleTick
                   ),
                   SizedBox(height: 8),
                   Text(
-                    'Try changing your filters or select a different VPA',
+                    qrSearchController.text.isNotEmpty
+                      ? 'No transactions match your search'
+                      : 'Try changing your filters or select a different VPA',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey[500],
@@ -2494,7 +2505,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with SingleTick
 
     Map<String, List<Map<String, dynamic>>> groupedTransactions = {};
 
-    for (var transaction in transactions) {
+    for (var transaction in filteredTransactions) {
       try {
         final transactionDate = _parseDateTime(transaction['time']);
         String dateKey = _formatDate(transactionDate);
@@ -2849,12 +2860,57 @@ class _TransactionsScreenState extends State<TransactionsScreen> with SingleTick
     qrSearchController.dispose();
     super.dispose();
   }
+  void _filterTransactions(String searchTerm) {
+    if (searchTerm.isEmpty) {
+      setState(() {
+        filteredTransactions = List.from(transactions);
+      });
+      return;
+    }
+
+    final lowerCaseSearchTerm = searchTerm.toLowerCase();
+    final newFilteredList = transactions.where((transaction) {
+      final status = (transaction['status'] as String?)?.toLowerCase() ?? '';
+
+      // Normalize amount for robust searching
+      final rawAmountStr = (transaction['amount'] as String?)?.replaceAll('₹', '').trim() ?? '0';
+      final rawAmount = double.tryParse(rawAmountStr) ?? 0.0;
+      final amount = rawAmount.toStringAsFixed(2);
+
+      final type = (transaction['type'] as String?)?.toLowerCase() ?? '';
+      final cardNumber = (transaction['cardNumber'] as String?)?.toLowerCase() ?? '';
+      final rrn = (transaction['rrn'] as String?)?.toLowerCase() ?? '';
+
+      String formattedTime = '';
+      String formattedDate = '';
+      try {
+        final transactionDate = _parseDateTime(transaction['time']);
+        formattedTime = DateFormat('hh:mm a').format(transactionDate).toLowerCase();
+        formattedDate = DateFormat('dd MMM yyyy').format(transactionDate).toLowerCase();
+      } catch (e) {
+        // Ignore parsing errors for now
+      }
+
+      return status.contains(lowerCaseSearchTerm) ||
+          amount.contains(lowerCaseSearchTerm) ||
+          type.contains(lowerCaseSearchTerm) ||
+          cardNumber.contains(lowerCaseSearchTerm) ||
+          rrn.contains(lowerCaseSearchTerm) ||
+          formattedTime.contains(lowerCaseSearchTerm) ||
+          formattedDate.contains(lowerCaseSearchTerm);
+    }).toList();
+
+    setState(() {
+      filteredTransactions = newFilteredList;
+    });
+  }
+
   void _performPOSSearch() {
-    fetchTransactions(txnStatus, txnType, dateRange);
+    _filterTransactions(searchController.text);
   }
 
   void _performQRSearch() {
-    fetchStaticQRTransactions();
+    _filterTransactions(qrSearchController.text);
   }
 
   Future<void> fetchStaticQRTransactions() async {
@@ -2862,6 +2918,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with SingleTick
       isLoading = true;
       currentPage = 0;
       transactions.clear();
+      filteredTransactions.clear();
       hasMoreData = true;
     });
 
@@ -2951,6 +3008,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with SingleTick
             currentPage = 1;
             hasMoreData = !isLastPage;
           });
+          _filterTransactions(qrSearchController.text);
         }
       }
     } catch (e) {
@@ -3047,6 +3105,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> with SingleTick
             currentPage = nextPage;
             hasMoreData = !isLastPage;
           });
+          _filterTransactions(qrSearchController.text);
         }
       }
     } catch (e) {
