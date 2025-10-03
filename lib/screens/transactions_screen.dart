@@ -2290,8 +2290,8 @@ class _TransactionsScreenState extends State<TransactionsScreen> with SingleTick
                   SizedBox(height: 8),
                   Text(
                     searchController.text.isNotEmpty
-                      ? 'No transactions match your search'
-                      : 'Try changing your filters or select a different terminal',
+                        ? 'No transactions match your search'
+                        : 'Try changing your filters or select a different terminal',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey[500],
@@ -2342,52 +2342,52 @@ class _TransactionsScreenState extends State<TransactionsScreen> with SingleTick
         controller: _scrollController, // Keep existing scroll controller
         itemCount: dateKeys.length + (isLoadingMore ? 1 : 0), // +1 for loading indicator
         itemBuilder: (context, index) {
-        if (isLoadingMore && index == dateKeys.length) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: CircularProgressIndicator(color: const Color(0xFF61116A)),
-            ),
-          );
-        }
-
-        final dateKey = dateKeys[index];
-        final dateTransactions = groupedTransactions[dateKey]!;
-
-        return StickyHeader(
-          header: dateKey == ""
-              ? const SizedBox.shrink()
-              : Container(
-            alignment: Alignment.center,
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
-              decoration: BoxDecoration(
-                color: const Color(0xFFEDEDED), // Soft neutral background
-                borderRadius: BorderRadius.circular(20),
+          if (isLoadingMore && index == dateKeys.length) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: CircularProgressIndicator(color: const Color(0xFF61116A)),
               ),
-              child: Text(
-                dateKey, // "Today", "Yesterday", or "20 Jun 2025"
-                style: TextStyle(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w500,
-                  color: const Color(0xFF4A4A4A), // Professional muted grey
-                  letterSpacing: 0.3,
+            );
+          }
+
+          final dateKey = dateKeys[index];
+          final dateTransactions = groupedTransactions[dateKey]!;
+
+          return StickyHeader(
+            header: dateKey == ""
+                ? const SizedBox.shrink()
+                : Container(
+              alignment: Alignment.center,
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEDEDED), // Soft neutral background
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  dateKey, // "Today", "Yesterday", or "20 Jun 2025"
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w500,
+                    color: const Color(0xFF4A4A4A), // Professional muted grey
+                    letterSpacing: 0.3,
+                  ),
                 ),
               ),
             ),
-          ),
-          content: Column(
-            children: dateTransactions
-                .map((transaction) => _buildTransactionItem(transaction))
-                .toList(),
-          ),
-        );
+            content: Column(
+              children: dateTransactions
+                  .map((transaction) => _buildTransactionItem(transaction))
+                  .toList(),
+            ),
+          );
 
 
 
-      },
-    ),);
+        },
+      ),);
   }
 
   DateTime _parseDateTime(String dateStr) {
@@ -2487,8 +2487,8 @@ class _TransactionsScreenState extends State<TransactionsScreen> with SingleTick
                   SizedBox(height: 8),
                   Text(
                     qrSearchController.text.isNotEmpty
-                      ? 'No transactions match your search'
-                      : 'Try changing your filters or select a different VPA',
+                        ? 'No transactions match your search'
+                        : 'Try changing your filters or select a different VPA',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey[500],
@@ -2557,52 +2557,52 @@ class _TransactionsScreenState extends State<TransactionsScreen> with SingleTick
         controller: _scrollController, // Keep existing scroll controller
         itemCount: dateKeys.length + (isLoadingMore ? 1 : 0),
         itemBuilder: (context, index) {
-        if (isLoadingMore && index == dateKeys.length) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: CircularProgressIndicator(color: const Color(0xFF61116A)),
-            ),
-          );
-        }
-
-        final dateKey = dateKeys[index];
-        final dateTransactions = groupedTransactions[dateKey]!;
-
-        return StickyHeader(
-          header: dateKey == ""
-              ? const SizedBox.shrink()
-              : Container(
-            alignment: Alignment.center,
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
-              decoration: BoxDecoration(
-                color: const Color(0xFFEDEDED), // Soft neutral background
-                borderRadius: BorderRadius.circular(20),
+          if (isLoadingMore && index == dateKeys.length) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: CircularProgressIndicator(color: const Color(0xFF61116A)),
               ),
-              child: Text(
-                dateKey, // "Today", "Yesterday", or "20 Jun 2025"
-                style: TextStyle(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w500,
-                  color: const Color(0xFF4A4A4A), // Professional muted grey
-                  letterSpacing: 0.3,
+            );
+          }
+
+          final dateKey = dateKeys[index];
+          final dateTransactions = groupedTransactions[dateKey]!;
+
+          return StickyHeader(
+            header: dateKey == ""
+                ? const SizedBox.shrink()
+                : Container(
+              alignment: Alignment.center,
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEDEDED), // Soft neutral background
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  dateKey, // "Today", "Yesterday", or "20 Jun 2025"
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w500,
+                    color: const Color(0xFF4A4A4A), // Professional muted grey
+                    letterSpacing: 0.3,
+                  ),
                 ),
               ),
             ),
-          ),
-          content: Column(
-            children: dateTransactions
-                .map((transaction) => _buildTransactionItem(transaction))
-                .toList(),
-          ),
-        );
+            content: Column(
+              children: dateTransactions
+                  .map((transaction) => _buildTransactionItem(transaction))
+                  .toList(),
+            ),
+          );
 
 
 
-      },
-    ),);
+        },
+      ),);
   }
 
   void _resetFilters() {
