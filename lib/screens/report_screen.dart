@@ -361,13 +361,17 @@ class _TransactionReportPageState extends State<TransactionReportPage>
     }
   }
   Future<void> _refreshData() async {
-    if (_tabController.index == 0) {
+    // Clear both lists immediately for a faster UI response
+    setState(() {
       _transactions.clear();
-      await _fetchTransactionData();
-    } else {
       _settlements.clear();
-      await _fetchSettlementData();
-    }
+    });
+
+    // Fetch both sets of data concurrently
+    await Future.wait([
+      _fetchTransactionData(),
+      _fetchSettlementData(),
+    ]);
   }
 
   Future<void> _launchFile(String url) async {
@@ -759,7 +763,7 @@ class _TransactionReportPageState extends State<TransactionReportPage>
                 'assets/noData.png',
                 width: 114,
                 height: 114,
-                 // optional tint
+                // optional tint
               ),
               const SizedBox(height: 6),
               Text(
@@ -844,39 +848,36 @@ class _TransactionReportPageState extends State<TransactionReportPage>
     return RefreshIndicator(
       onRefresh: _refreshData,
       color: customPurple,
-      child: Column(
-        children: [
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: _refreshData,
-              color: customPurple,
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                itemCount: items.length > 5 ? 5 : items.length,
-                itemBuilder: (context, index) => _buildListItem(items[index], index, items.length > 5 ? 5 : items.length),
-                physics: const AlwaysScrollableScrollPhysics(),
+      child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        itemCount: (items.length > 5 ? 5 : items.length) + 1,
+        itemBuilder: (context, index) {
+          final limitedItemCount = items.length > 5 ? 5 : items.length;
+
+          if (index < limitedItemCount) {
+            return _buildListItem(items[index], index, limitedItemCount);
+          } else {
+            return Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                border: Border(top: BorderSide(color: Colors.grey.shade300, width: 0.5)),
               ),
-            ),
-          ),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border(top: BorderSide(color: Colors.grey.shade300, width: 0.5)),
-            ),
-            child: Text(
-              'Note: Only five ${_tabController.index == 0 ? 'transaction' : 'settlement'} reports will be available at a time',
-              style: TextStyle(
-                fontFamily: 'Montserrat',
-                fontSize: 12,
-                color: Colors.grey[600],
-                fontStyle: FontStyle.italic,
+              child: Text(
+                'Note: Only five ${_tabController.index == 0 ? 'transaction' : 'settlement'} reports will be available at a time',
+                style: TextStyle(
+                  fontFamily: 'Montserrat',
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                  fontStyle: FontStyle.italic,
+                ),
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ],
+            );
+          }
+        },
       ),
     );
   }

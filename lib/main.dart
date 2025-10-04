@@ -1048,16 +1048,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   bool _isFirstLoad = true;
   bool _isLoading = false;
 
-  Future<void> _safeShowToast(String msg) async {
-    try {
-      await Fluttertoast.showToast(msg: msg);
-    } on MissingPluginException catch (e) {
-      print("Toast not shown due to MissingPluginException: $e");
-    } on PlatformException catch (e) {
-      print("Toast not shown due to PlatformException: $e");
-    }
-  }
-
   String _formatCarouselDisplayDateTime(String? timestampStr, bool isPosResponseTimeFormat) {
     if (timestampStr == null || timestampStr.isEmpty) {
       return 'Unknown'; // Or some other placeholder
@@ -1355,24 +1345,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               };
             }
           });
-        } else {
-          // Handle cases where API returns 200 but with an error status
-          _safeShowToast(responseData['message'] ?? 'Failed to fetch summary.');
-          setState(() {
-            _responseData = null; // Clear stale data
-          });
         }
-      } else {
-        // Handle non-200 status codes (like 500)
-        _safeShowToast('Error: Could not connect to the server.');
-        setState(() {
-          _responseData = null; // Clear stale data
-        });
       }
     } catch (e) {
       print('\n❌ API Error:');
       print('Error fetching transaction summary: $e');
-      _safeShowToast('An error occurred. Please check your connection.');
     } finally {
       setState(() {
         _isLoading = false;
@@ -1562,13 +1539,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     children: const [
                       Icon(Icons.add, color: Color(0xFF61116A)),
                       SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          "+ Add TID",
-                          style: TextStyle(
-                            color: Color(0xFF61116A),
-                            fontWeight: FontWeight.w600,
-                          ),
+                      Text(
+                        "+ Add TID",
+                        style: TextStyle(
+                          color: Color(0xFF61116A),
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
@@ -1706,13 +1681,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     children: const [
                       Icon(Icons.add, color: Color(0xFF61116A)),
                       SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          "+ Add VPA",
-                          style: TextStyle(
-                            color: Color(0xFF61116A),
-                            fontWeight: FontWeight.w600,
-                          ),
+                      Text(
+                        "+ Add VPA",
+                        style: TextStyle(
+                          color: Color(0xFF61116A),
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
@@ -2712,7 +2685,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   void _showAddTidDialog() {
     if (_mobileNo == null) {
-      _safeShowToast("Could not find user profile. Please try again.");
+      Fluttertoast.showToast(msg: "Could not find user profile. Please try again.");
       return;
     }
     showDialog(
@@ -2797,7 +2770,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   Future<void> _addTid(String tid) async {
     if (_mobileNo == null) {
-      _safeShowToast("Mobile number not found. Cannot add TID.");
+      Fluttertoast.showToast(msg: "Mobile number not found. Cannot add TID.");
       return;
     }
 
@@ -2817,7 +2790,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200 && data['status'] == 'OK') {
-        _safeShowToast("TID added successfully!");
+        Fluttertoast.showToast(msg: "TID added successfully!");
         setState(() {
           _terminalIds.add(tid);
           _selectedTerminalId = tid;
@@ -2825,16 +2798,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         fetchTransactionSummary();
       } else {
         final message = data['message'] ?? "An unknown error occurred";
-        _safeShowToast(message);
+        Fluttertoast.showToast(msg: message);
       }
     } catch (e) {
-      _safeShowToast("Failed to add TID: $e");
+      Fluttertoast.showToast(msg: "Failed to add TID: $e");
     }
   }
 
   void _showAddVpaDialog() {
     if (_mobileNo == null) {
-      _safeShowToast("Could not find user profile. Please try again.");
+      Fluttertoast.showToast(msg: "Could not find user profile. Please try again.");
       return;
     }
     showDialog(
@@ -2937,14 +2910,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       if (vpa != null && vpa.isNotEmpty) {
         _addVpa(vpa);
       } else {
-        _safeShowToast("Failed to scan QR code. Please try again.");
+        Fluttertoast.showToast(msg: "Failed to scan QR code. Please try again.");
       }
     });
   }
 
   Future<void> _addVpa(String vpa) async {
     if (_mobileNo == null) {
-      _safeShowToast("Mobile number not found. Cannot add VPA.");
+      Fluttertoast.showToast(msg: "Mobile number not found. Cannot add VPA.");
       return;
     }
     try {
@@ -2958,17 +2931,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       );
       final data = jsonDecode(response.body);
       if (response.statusCode == 200 && data['status'] == 'OK') {
-        _safeShowToast("VPA added successfully!");
+        Fluttertoast.showToast(msg: "VPA added successfully!");
         setState(() {
           _vpaList.add(vpa);
           _selectedStaticQR = vpa;
         });
         fetchTransactionSummary();
       } else {
-        _safeShowToast(data['message'] ?? "Failed to add VPA");
+        Fluttertoast.showToast(msg: data['message'] ?? "Failed to add VPA");
       }
     } catch (e) {
-      _safeShowToast("An error occurred: $e");
+      Fluttertoast.showToast(msg: "An error occurred: $e");
     }
   }
 }
