@@ -2952,6 +2952,7 @@ class CustomDropdownField extends StatefulWidget {
   final List<String> items;
   final Function(String?) onChanged;
   final Color backgroundColor;
+  final Widget Function(VoidCallback closeCallback)? footerBuilder;
 
   const CustomDropdownField({
     Key? key,
@@ -2960,6 +2961,7 @@ class CustomDropdownField extends StatefulWidget {
     required this.items,
     required this.onChanged,
     this.backgroundColor = const Color(0xFFF8EEF2),
+    this.footerBuilder,
   }) : super(key: key);
 
   @override
@@ -3314,70 +3316,76 @@ class _CustomDropdownFieldWithBarrierState extends State<CustomDropdownFieldWith
               child: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  children: widget.items.map((item) {
-                    final isSelected = widget.value == item;
-                    return InkWell(
-                      onTap: () {
-                        widget.onChanged(item);
-                        _closeDropdown();
-                      },
-                      borderRadius: BorderRadius.circular(6),
-                      splashColor: customPurple.withOpacity(0.1),
-                      highlightColor: customPurple.withOpacity(0.05),
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? customPurple.withOpacity(0.08)
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Row(
-                          children: [
-                            // Radio button
-                            Container(
-                              width: 18,
-                              height: 18,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: isSelected ? customPurple : Colors.grey[400]!,
-                                  width: 2,
-                                ),
-                                color: isSelected ? customPurple : Colors.transparent,
-                              ),
-                              child: isSelected
-                                  ? Center(
-                                child: Container(
-                                  width: 6,
-                                  height: 6,
-                                  decoration: const BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Colors.white,
+                  children: [
+                    ...widget.items.map((item) {
+                      final isSelected = widget.value == item;
+                      return InkWell(
+                        onTap: () {
+                          widget.onChanged(item);
+                          _closeDropdown();
+                        },
+                        borderRadius: BorderRadius.circular(6),
+                        splashColor: customPurple.withOpacity(0.1),
+                        highlightColor: customPurple.withOpacity(0.05),
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? customPurple.withOpacity(0.08)
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Row(
+                            children: [
+                              // Radio button
+                              Container(
+                                width: 18,
+                                height: 18,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: isSelected ? customPurple : Colors.grey[400]!,
+                                    width: 2,
                                   ),
+                                  color: isSelected ? customPurple : Colors.transparent,
                                 ),
-                              )
-                                  : null,
-                            ),
-                            const SizedBox(width: 12),
-                            // Text
-                            Expanded(
-                              child: Text(
-                                item,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                                  color: isSelected ? customPurple : Colors.black87,
-                                ),
-                                overflow: TextOverflow.ellipsis,
+                                child: isSelected
+                                    ? Center(
+                                  child: Container(
+                                    width: 6,
+                                    height: 6,
+                                    decoration: const BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                )
+                                    : null,
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 12),
+                              // Text
+                              Expanded(
+                                child: Text(
+                                  item,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                                    color: isSelected ? customPurple : Colors.black87,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                  }).toList(),
+                      );
+                    }).toList(),
+                    if (widget.footerBuilder != null) ...[
+                      const Divider(height: 1, thickness: 1),
+                      widget.footerBuilder!(_closeDropdown),
+                    ],
+                  ],
                 ),
               ),
             ),
