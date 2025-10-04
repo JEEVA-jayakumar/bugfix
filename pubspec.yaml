@@ -52,6 +52,8 @@ dependencies:
   firebase_messaging: any
   firebase_core: any
   flutter_local_notifications: any
+  qr_code_scanner: ^1.0.1
+  fluttertoast: ^8.2.4
 
 dev_dependencies:
   flutter_launcher_icons: ^0.14.4
