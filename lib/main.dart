@@ -11,6 +11,8 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'dart:math';
 import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'screens/transactions_details.dart';
 import 'screens/Initial_login.dart';
 import 'screens/NotificationScreen.dart';
@@ -1023,6 +1025,11 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
+  late List<String> _terminalIds;
+  late List<String> _vpaList;
+  final GlobalKey _qrKey = GlobalKey(debugLabel: 'QR');
+  QRViewController? _qrViewController;
+  String? _mobileNo;
   String? _selectedTerminalId;
   String? _selectedStaticQR;
   ScrollController _transactionScrollController = ScrollController();
@@ -1068,11 +1075,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    if (widget.terminalIds.isNotEmpty) {
-      _selectedTerminalId = widget.terminalIds[0];
+    _terminalIds = List.from(widget.terminalIds);
+    _vpaList = List.from(widget.vpaList);
+    _mobileNo = AppState.instance.mobileNumber;
+
+    if (_terminalIds.isNotEmpty) {
+      _selectedTerminalId = _terminalIds[0];
     }
-    if (widget.vpaList.isNotEmpty) {
-      _selectedStaticQR = widget.vpaList[0];
+    if (_vpaList.isNotEmpty) {
+      _selectedStaticQR = _vpaList[0];
     }
 
     _arrowAnimationController = AnimationController(
@@ -1514,8 +1525,32 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           CustomDropdownFieldWithBarrier(
             label: 'Terminal ID',
             value: _selectedTerminalId ?? '',
-            items: widget.terminalIds,
+            items: _terminalIds,
             onChanged: _onTerminalIdChanged,
+            footerBuilder: (closeCallback) {
+              return GestureDetector(
+                onTap: () {
+                  closeCallback();
+                  _showAddTidDialog();
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                  child: Row(
+                    children: const [
+                      Icon(Icons.add, color: Color(0xFF61116A)),
+                      SizedBox(width: 8),
+                      Text(
+                        "+ Add TID",
+                        style: TextStyle(
+                          color: Color(0xFF61116A),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
           ),
           const SizedBox(height: 16),
 
@@ -1631,10 +1666,33 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           CustomDropdownFieldWithBarrier(
             label: 'Static QR',
             value: _selectedStaticQR ?? '',
-            items: widget.vpaList,
+            items: _vpaList,
             onChanged: _onStaticQRChanged,
             backgroundColor: staticQRBackgroundColor,
-            onAddPressed: _showAddVPADialog,
+            footerBuilder: (closeCallback) {
+              return GestureDetector(
+                onTap: () {
+                  closeCallback();
+                  _showAddVpaDialog();
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                  child: Row(
+                    children: const [
+                      Icon(Icons.add, color: Color(0xFF61116A)),
+                      SizedBox(width: 8),
+                      Text(
+                        "+ Add VPA",
+                        style: TextStyle(
+                          color: Color(0xFF61116A),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
           ),
           const SizedBox(height: 16),
 
@@ -2624,6 +2682,268 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         print("Unknown screen key: $screenKey");
     }
   }
+
+  void _showAddTidDialog() {
+    if (_mobileNo == null) {
+      Fluttertoast.showToast(msg: "Could not find user profile. Please try again.");
+      return;
+    }
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        child: _buildAddTidDialogContent(context),
+      ),
+    );
+  }
+
+  Widget _buildAddTidDialogContent(BuildContext context) {
+    final tidController = TextEditingController();
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.rectangle,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 10.0,
+            offset: Offset(0.0, 10.0),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          const Text(
+            "Add TID",
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF61116A),
+            ),
+          ),
+          const SizedBox(height: 24),
+          TextField(
+            controller: tidController,
+            decoration: InputDecoration(
+              labelText: "Enter TID",
+              labelStyle: TextStyle(color: Colors.grey[600]),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: Color(0xFF61116A), width: 2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: () {
+              final tid = tidController.text;
+              if (tid.isNotEmpty) {
+                Navigator.of(context).pop();
+                _addTid(tid);
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF61116A),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              minimumSize: const Size(double.infinity, 50),
+            ),
+            child: const Text(
+              "Add",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _addTid(String tid) async {
+    if (_mobileNo == null) {
+      Fluttertoast.showToast(msg: "Mobile number not found. Cannot add TID.");
+      return;
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse('https://bportal.bijlipay.co.in:9027/auth/user/add-tid'),
+        headers: {
+          'Authorization': 'Bearer ${widget.authToken}',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'mobileNo': _mobileNo,
+          'tid': tid,
+        }),
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200 && data['status'] == 'OK') {
+        Fluttertoast.showToast(msg: "TID added successfully!");
+        setState(() {
+          _terminalIds.add(tid);
+          _selectedTerminalId = tid;
+        });
+        fetchTransactionSummary();
+      } else {
+        final message = data['message'] ?? "An unknown error occurred";
+        Fluttertoast.showToast(msg: message);
+      }
+    } catch (e) {
+      Fluttertoast.showToast(msg: "Failed to add TID: $e");
+    }
+  }
+
+  void _showAddVpaDialog() {
+    if (_mobileNo == null) {
+      Fluttertoast.showToast(msg: "Could not find user profile. Please try again.");
+      return;
+    }
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        child: _buildAddVpaDialogContent(context),
+      ),
+    );
+  }
+
+  Widget _buildAddVpaDialogContent(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.rectangle,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 10.0,
+            offset: Offset(0.0, 10.0),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          const Text(
+            "Add VPA",
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF61116A),
+            ),
+          ),
+          const SizedBox(height: 24),
+          const Text(
+            "Scan to add VPA",
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 16),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _openScanner();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF61116A),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              minimumSize: const Size(double.infinity, 50),
+            ),
+            child: const Text(
+              "Scan",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openScanner() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          child: Container(
+            width: 300,
+            height: 300,
+            child: QRView(
+              key: _qrKey,
+              onQRViewCreated: _onQRViewCreated,
+              overlay: QrScannerOverlayShape(
+                borderColor: Theme.of(context).primaryColor,
+                borderRadius: 10,
+                borderLength: 30,
+                borderWidth: 10,
+                cutOutSize: 250,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _onQRViewCreated(QRViewController controller) {
+    _qrViewController = controller;
+    _qrViewController!.scannedDataStream.first.then((scanData) {
+      Navigator.of(context).pop();
+      final vpa = scanData.code;
+      if (vpa != null && vpa.isNotEmpty) {
+        _addVpa(vpa);
+      } else {
+        Fluttertoast.showToast(msg: "Failed to scan QR code. Please try again.");
+      }
+    });
+  }
+
+  Future<void> _addVpa(String vpa) async {
+    if (_mobileNo == null) {
+      Fluttertoast.showToast(msg: "Mobile number not found. Cannot add VPA.");
+      return;
+    }
+    try {
+      final response = await http.post(
+        Uri.parse('https://uatapp2.bijlipay.co.in:9027/auth/user/add-vpa'),
+        headers: {
+          'Authorization': 'Bearer ${widget.authToken}',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({'mobileNo': _mobileNo, 'vpa': vpa}),
+      );
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200 && data['status'] == 'OK') {
+        Fluttertoast.showToast(msg: "VPA added successfully!");
+        setState(() {
+          _vpaList.add(vpa);
+          _selectedStaticQR = vpa;
+        });
+        fetchTransactionSummary();
+      } else {
+        Fluttertoast.showToast(msg: data['message'] ?? "Failed to add VPA");
+      }
+    } catch (e) {
+      Fluttertoast.showToast(msg: "An error occurred: $e");
+    }
+  }
 }
 // Replace your CustomDropdownField with this updated version
 class CustomDropdownField extends StatefulWidget {
@@ -2714,70 +3034,76 @@ class _CustomDropdownFieldState extends State<CustomDropdownField> {
               child: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  children: widget.items.map((item) {
-                    final isSelected = widget.value == item;
-                    return InkWell(
-                      onTap: () {
-                        widget.onChanged(item);
-                        _closeDropdown();
-                      },
-                      borderRadius: BorderRadius.circular(6),
-                      splashColor: customPurple.withOpacity(0.1),
-                      highlightColor: customPurple.withOpacity(0.05),
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? customPurple.withOpacity(0.08)
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Row(
-                          children: [
-                            // Radio button
-                            Container(
-                              width: 18,
-                              height: 18,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: isSelected ? customPurple : Colors.grey[400]!,
-                                  width: 2,
-                                ),
-                                color: isSelected ? customPurple : Colors.transparent,
-                              ),
-                              child: isSelected
-                                  ? Center(
-                                child: Container(
-                                  width: 6,
-                                  height: 6,
-                                  decoration: const BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Colors.white,
+                  children: [
+                    ...widget.items.map((item) {
+                      final isSelected = widget.value == item;
+                      return InkWell(
+                        onTap: () {
+                          widget.onChanged(item);
+                          _closeDropdown();
+                        },
+                        borderRadius: BorderRadius.circular(6),
+                        splashColor: customPurple.withOpacity(0.1),
+                        highlightColor: customPurple.withOpacity(0.05),
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? customPurple.withOpacity(0.08)
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Row(
+                            children: [
+                              // Radio button
+                              Container(
+                                width: 18,
+                                height: 18,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: isSelected ? customPurple : Colors.grey[400]!,
+                                    width: 2,
                                   ),
+                                  color: isSelected ? customPurple : Colors.transparent,
                                 ),
-                              )
-                                  : null,
-                            ),
-                            const SizedBox(width: 12),
-                            // Text
-                            Expanded(
-                              child: Text(
-                                item,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                                  color: isSelected ? customPurple : Colors.black87,
-                                ),
-                                overflow: TextOverflow.ellipsis,
+                                child: isSelected
+                                    ? Center(
+                                  child: Container(
+                                    width: 6,
+                                    height: 6,
+                                    decoration: const BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                )
+                                    : null,
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 12),
+                              // Text
+                              Expanded(
+                                child: Text(
+                                  item,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                                    color: isSelected ? customPurple : Colors.black87,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                  }).toList(),
+                      );
+                    }).toList(),
+                    if (widget.footerBuilder != null) ...[
+                      const Divider(height: 1, thickness: 1),
+                      widget.footerBuilder!(_closeDropdown),
+                    ],
+                  ],
                 ),
               ),
             ),
@@ -2887,6 +3213,7 @@ class CustomDropdownFieldWithBarrier extends StatefulWidget {
   final Color backgroundColor;
   final bool showAddButton; // New property
   final VoidCallback? onAddPressed;
+  final Widget Function(VoidCallback closeCallback)? footerBuilder;
 
   const CustomDropdownFieldWithBarrier({
     Key? key,
@@ -2897,6 +3224,7 @@ class CustomDropdownFieldWithBarrier extends StatefulWidget {
     this.backgroundColor = const Color(0xFFF8EEF2),
     this.showAddButton = false,
     this.onAddPressed,
+    this.footerBuilder,
   }) : super(key: key);
 
   @override
