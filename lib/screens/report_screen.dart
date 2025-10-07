@@ -361,17 +361,17 @@ class _TransactionReportPageState extends State<TransactionReportPage>
     }
   }
   Future<void> _refreshData() async {
-    // Clear both lists immediately for a faster UI response
+    // Reset error message before refreshing
     setState(() {
-      _transactions.clear();
-      _settlements.clear();
+      _errorMessage = '';
     });
 
-    // Fetch both sets of data concurrently
-    await Future.wait([
-      _fetchTransactionData(),
-      _fetchSettlementData(),
-    ]);
+    // Only fetch data for the current tab
+    if (_tabController.index == 0) {
+      await _fetchTransactionData();
+    } else {
+      await _fetchSettlementData();
+    }
   }
 
   Future<void> _launchFile(String url) async {

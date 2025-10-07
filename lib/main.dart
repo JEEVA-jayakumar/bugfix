@@ -11,7 +11,6 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'dart:math';
 import 'package:flutter/services.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'screens/transactions_details.dart';
 import 'screens/Initial_login.dart';
@@ -1048,14 +1047,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   bool _isFirstLoad = true;
   bool _isLoading = false;
 
-  Future<void> _safeShowToast(String msg) async {
-    try {
-      await Fluttertoast.showToast(msg: msg);
-    } on MissingPluginException catch (e) {
-      print("Toast not shown due to MissingPluginException: $e");
-    } on PlatformException catch (e) {
-      print("Toast not shown due to PlatformException: $e");
-    }
+  void _showSafeSnackBar(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        margin: const EdgeInsets.all(16),
+      ),
+    );
   }
 
   String _formatCarouselDisplayDateTime(String? timestampStr, bool isPosResponseTimeFormat) {
@@ -1357,14 +1360,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           });
         } else {
           // Handle cases where API returns 200 but with an error status
-          _safeShowToast(responseData['message'] ?? 'Failed to fetch summary.');
+          _showSafeSnackBar(responseData['message'] ?? 'Failed to fetch summary.');
           setState(() {
             _responseData = null; // Clear stale data
           });
         }
       } else {
         // Handle non-200 status codes (like 500)
-        _safeShowToast('Error: Could not connect to the server.');
+        // _showSafeSnackBar('Error: Could not connect to the server.');
         setState(() {
           _responseData = null; // Clear stale data
         });
@@ -1372,7 +1375,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     } catch (e) {
       print('\n❌ API Error:');
       print('Error fetching transaction summary: $e');
-      _safeShowToast('An error occurred. Please check your connection.');
+      _showSafeSnackBar('An error occurred. Please check your connection.');
     } finally {
       setState(() {
         _isLoading = false;
@@ -1552,9 +1555,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             onChanged: _onTerminalIdChanged,
             footerBuilder: (closeCallback) {
               return GestureDetector(
-                onTap: () {
+                onTap: () async {
                   closeCallback();
-                  _showAddTidDialog();
+                  bool profileFetched = await _fetchUserProfile();
+                  if (profileFetched) {
+                    _showAddTidDialog();
+                  }
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
@@ -1696,9 +1702,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             backgroundColor: staticQRBackgroundColor,
             footerBuilder: (closeCallback) {
               return GestureDetector(
-                onTap: () {
+                onTap: () async {
                   closeCallback();
-                  _showAddVpaDialog();
+                  bool profileFetched = await _fetchUserProfile();
+                  if (profileFetched) {
+                    _showAddVpaDialog();
+                  }
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
@@ -2712,7 +2721,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   void _showAddTidDialog() {
     if (_mobileNo == null) {
-      _safeShowToast("Could not find user profile. Please try again.");
+      _showSafeSnackBar("Could not find user profile. Please try again.");
       return;
     }
     showDialog(
@@ -2797,7 +2806,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   Future<void> _addTid(String tid) async {
     if (_mobileNo == null) {
-      _safeShowToast("Mobile number not found. Cannot add TID.");
+      _showSafeSnackBar("Mobile number not found. Cannot add TID.");
       return;
     }
 
@@ -2815,26 +2824,26 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       );
 
       final data = jsonDecode(response.body);
-
+print(data);
       if (response.statusCode == 200 && data['status'] == 'OK') {
-        _safeShowToast("TID added successfully!");
+        _showSafeSnackBar("TID added successfully!");
         setState(() {
           _terminalIds.add(tid);
           _selectedTerminalId = tid;
         });
         fetchTransactionSummary();
       } else {
-        final message = data['message'] ?? "An unknown error occurred";
-        _safeShowToast(message);
+        final message = data['message'] ?? "Entered TID is already registered. Please contact Bijlipay customer service.!";
+        _showSafeSnackBar(message);
       }
     } catch (e) {
-      _safeShowToast("Failed to add TID: $e");
+      _showSafeSnackBar("Failed to add TID: $e");
     }
   }
 
   void _showAddVpaDialog() {
     if (_mobileNo == null) {
-      _safeShowToast("Could not find user profile. Please try again.");
+      _showSafeSnackBar("Could not find user profile. Please try again.");
       return;
     }
     showDialog(
@@ -2937,19 +2946,59 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       if (vpa != null && vpa.isNotEmpty) {
         _addVpa(vpa);
       } else {
-        _safeShowToast("Failed to scan QR code. Please try again.");
+        _showSafeSnackBar("Failed to scan QR code. Please try again.");
       }
     });
   }
 
+  Future<bool> _fetchUserProfile() async {
+    try {
+      final response = await http.get(
+        Uri.parse('https://bportal.bijlipay.co.in:9027/auth/user/profile'),
+        headers: {
+          'Authorization': 'Bearer ${widget.authToken}',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        if (responseData['status'] == 'OK' && responseData['data'] != null) {
+          final userData = responseData['data'];
+          // Update AppState
+          AppState.instance.setUserData(
+            mobile: userData['mobileNo'],
+            merchant: userData['merchantName'],
+            // email: userData['email'],
+            // merchantAddress: userData['merchantAddress'],
+            account: userData['accountNo'],
+            bank: userData['bankName'],
+            ifsc: userData['ifscCode'],
+            branchName: userData['branch'],
+          );
+          // Also update local state for immediate use
+          setState(() {
+            _mobileNo = userData['mobileNo'];
+          });
+          return true; // Success
+        }
+      }
+      // If response is not OK or status code is not 200
+      _showSafeSnackBar('Failed to fetch user profile. Please try again.');
+      return false; // Failure
+    } catch (e) {
+      _showSafeSnackBar('An error occurred while fetching profile: $e');
+      return false; // Failure
+    }
+  }
+
   Future<void> _addVpa(String vpa) async {
     if (_mobileNo == null) {
-      _safeShowToast("Mobile number not found. Cannot add VPA.");
+      _showSafeSnackBar("Mobile number not found. Cannot add VPA.");
       return;
     }
     try {
       final response = await http.post(
-        Uri.parse('https://uatapp2.bijlipay.co.in:9027/auth/user/add-vpa'),
+        Uri.parse('https://bportal.bijlipay.co.in:9027/auth/user/add-vpa'),
         headers: {
           'Authorization': 'Bearer ${widget.authToken}',
           'Content-Type': 'application/json',
@@ -2958,17 +3007,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       );
       final data = jsonDecode(response.body);
       if (response.statusCode == 200 && data['status'] == 'OK') {
-        _safeShowToast("VPA added successfully!");
+        _showSafeSnackBar("VPA added successfully!");
         setState(() {
           _vpaList.add(vpa);
           _selectedStaticQR = vpa;
         });
         fetchTransactionSummary();
       } else {
-        _safeShowToast(data['message'] ?? "Failed to add VPA");
+        _showSafeSnackBar(data['message'] ?? "Failed to add VPA");
       }
     } catch (e) {
-      _safeShowToast("An error occurred: $e");
+      _showSafeSnackBar("An error occurred: $e");
     }
   }
 }
