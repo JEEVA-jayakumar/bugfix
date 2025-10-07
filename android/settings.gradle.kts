@@ -19,8 +19,8 @@ pluginManagement {
 toolchainManagement {
     jvm {
         javaRepositories {
-            mavenCentral()
-            gradlePluginPortal()
+            maven { url = uri("https://repo.maven.apache.org/maven2/") }
+            maven { url = uri("https://plugins.gradle.org/m2/") }
         }
     }
 }
