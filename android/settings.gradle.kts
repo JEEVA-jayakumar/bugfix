@@ -16,14 +16,6 @@ pluginManagement {
     }
 }
 
-toolchainManagement {
-    jvm {
-        javaRepositories {
-            maven { url = uri("https://repo.maven.apache.org/maven2/") }
-            maven { url = uri("https://plugins.gradle.org/m2/") }
-        }
-    }
-}
 
 plugins {
     id("dev.flutter.flutter-plugin-loader") version "1.0.0"
