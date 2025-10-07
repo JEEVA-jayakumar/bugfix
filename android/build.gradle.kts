@@ -3,6 +3,12 @@ allprojects {
         google()
         mavenCentral()
     }
+
+    project.plugins.withId("org.jetbrains.kotlin.android") {
+        project.extensions.configure<org.jetbrains.kotlin.gradle.dsl.KotlinAndroidProjectExtension> {
+            jvmToolchain(11)
+        }
+    }
 }
 
 val newBuildDir: Directory = rootProject.layout.buildDirectory.dir("../../build").get()
@@ -14,11 +20,6 @@ subprojects {
 }
 subprojects {
     project.evaluationDependsOn(":app")
-    project.tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-        kotlinOptions {
-            jvmTarget = "1.8"
-        }
-    }
 }
 
 tasks.register<Delete>("clean") {
